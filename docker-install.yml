@@ -1,0 +1,62 @@
+---
+- name: "AWS - Install docker"
+  hosts: docker
+  become: yes
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+        update_only: yes
+
+    - name: Ensure a list of yum packages are installed
+      yum:
+        name: "{{ packages }}"
+        state: latest
+        update_cache: yes
+      vars:
+        packages:
+          - docker
+          - python3.8
+
+    - name: Add extras repository
+      shell: yum-config-manager --enable extras
+
+    - name: Enable Some packages from amazon-linux-extras packages
+      shell: "amazon-linux-extras enable python3.8 docker"
+
+    - name: clean yum metadata cache
+      command: yum clean metadata
+      args:
+        warn: false
+
+    - name: Ensure a list of yum packages are installed
+      yum:
+        name: "{{ packages }}"
+        state: latest
+        update_cache: yes
+      vars:
+        packages:
+          - docker
+          - python3.8
+
+    - name: Enable Docker CE service at startup
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+#    # sudo groupadd docker
+#    - name: Create docker group
+#      group:
+#        name: docker
+#        state: present
+
+#    # sudo usermod docker ubuntu
+#    - name: Add remote users to docker group
+#      user:
+#        name: "{{ item }}"
+#        group: docker
+#        append: yes
+#      loop:
+#        - jenkins
